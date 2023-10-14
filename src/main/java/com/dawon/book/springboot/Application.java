@@ -1,13 +1,13 @@
-package com.dawon.book.dawonspringboot2webservice;
+package com.dawon.book.springboot;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class DawonSpringboot2Application {
+public class Application {
 
     public static void main(String[] args) {
-        SpringApplication.run(DawonSpringboot2Application.class, args);
+        SpringApplication.run(Application.class, args);
     }
 
 }
