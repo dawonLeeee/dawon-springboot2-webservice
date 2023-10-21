@@ -4,7 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
-@EnableJpaAuditing // JPA Auditing기능 활성화
+//@EnableJpaAuditing // JPA Auditing기능 활성화 -> IllegalArgumentException으로 제거
 @SpringBootApplication
 public class Application {
 
