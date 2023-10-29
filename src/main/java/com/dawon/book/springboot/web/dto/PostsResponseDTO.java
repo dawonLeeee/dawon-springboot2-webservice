@@ -3,20 +3,17 @@ package com.dawon.book.springboot.web.dto;
 import com.dawon.book.springboot.domain.posts.Posts;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
-
 @Getter
-public class PostsListResponseDto {
-
+public class PostsResponseDTO {
     private Long id;
     private String title;
+    private String content;
     private String author;
-    private LocalDateTime modifiedDate;
 
-    public PostsListResponseDto(Posts entity) {
+    public PostsResponseDTO(Posts entity) {
         this.id = entity.getId();
         this.title = entity.getTitle();
+        this.content = entity.getContent();
         this.author = entity.getAuthor();
-        this.modifiedDate = entity.getModifiedDate();
     }
 }

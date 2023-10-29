@@ -2,22 +2,23 @@ package com.dawon.book.springboot.web;
 
 import com.dawon.book.springboot.domain.posts.Posts;
 import com.dawon.book.springboot.domain.posts.PostsRepository;
-import com.dawon.book.springboot.web.dto.PostsSaveRequestDto;
-import com.dawon.book.springboot.web.dto.PostsUpdateRequestDto;
+import com.dawon.book.springboot.web.dto.PostsSaveRequestDTO;
+import com.dawon.book.springboot.web.dto.PostsUpdateRequestDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MockMvcBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -31,12 +32,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class PostsApiControllerTest {
+public class PostsApiContollerTest {
 
-    /*
-    * @WebMvcTest를 사용하지 않음 : @WebMvcTest의 경우 JPA 기능이 작동하지 않음
-    * --> JPA기능까지 한번에 테스트할 경우 @SpringBootTest와 TestRunTemplate을 사용하면 됨
-    * */
+    @LocalServerPort
+    private int port;
+
+    @Autowired
+    private TestRestTemplate restTemplate;
+
+    @Autowired
+    private PostsRepository postsRepository;
 
     @Autowired
     private WebApplicationContext context;
@@ -51,47 +56,50 @@ public class PostsApiControllerTest {
                 .build();
     }
 
-    @LocalServerPort
-    private int port;
-
-    @Autowired
-    private TestRestTemplate restTemplate;
-
-    @Autowired
-    private PostsRepository postsRepository;
-
     @AfterEach
     public void tearDown() throws Exception {
         postsRepository.deleteAll();
     }
 
+    // 인증된 모의(가짜) 사용자를 만들어서 사용한다.
+    // roles에 권한을 추가할 수 있다.
+    // 즉, 이 어노테이션으로 인해 ROLE_USER 권한을 가진 사용자가 API를 요청하는 것과 동일한 효과를 가지게 된다.
+    @DisplayName("Posts 등록")
     @Test
-    @WithMockUser(roles = "USER") // 인증된 모의 사용자를 만들어 사용함
-    // @SpringBootTest에서 MockMvc를 사용할 수 있도록 설정해야 사용가능함
-    public void Posts_등록된다() throws Exception {
+    @WithMockUser(roles = "USER")
+    public void Posts_등록() throws Exception {
         // given
         String title = "title";
         String content = "content";
-        PostsSaveRequestDto requestDto = PostsSaveRequestDto.builder()
+        PostsSaveRequestDTO requestDTO = PostsSaveRequestDTO.builder()
                 .title(title)
                 .content(content)
-                .author("auther")
+                .author("author")
                 .build();
 
         String url = "http://localhost:" + port + "/api/v1/posts";
 
         // when
-//        ResponseEntity<Long> responseEntity = restTemplate.postForEntity(url, requestDto, Long.class);
-        mvc.perform(post(url).contentType(MediaType.APPLICATION_JSON_UTF8).content(new ObjectMapper().writeValueAsString(requestDto)))
+//        ResponseEntity<Long> responseEntity = restTemplate.postForEntity(url, requestDTO, Long.class);
+
+        // mvc.perform : 생성된 MockMvc를 통해 API를 테스트 한다.
+        // 본문(Body) 영역은 문자열로 표현하기 위해 ObjectMapper를 통해 문자열 JSON으로 변환한다.
+        // MediaType.APPLICATION_JSON_UTF8이 deprecated가 되어 MediaType.APPLICATION_JSON으로 바꿔주었다.
+        mvc.perform(post(url)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(requestDTO)))
                 .andExpect(status().isOk());
 
         // then
+//        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+//        assertThat(responseEntity.getBody()).isGreaterThan(0L);
+//
         List<Posts> all = postsRepository.findAll();
         assertThat(all.get(0).getTitle()).isEqualTo(title);
         assertThat(all.get(0).getContent()).isEqualTo(content);
-
     }
 
+    @DisplayName("Posts 수정")
     @Test
     @WithMockUser(roles = "USER")
     public void Posts_수정() throws Exception {
@@ -104,19 +112,20 @@ public class PostsApiControllerTest {
 
         Long updateId = savedPosts.getId();
         String expectedTitle = "title2";
-        String expectedContent = "content2";
+        String expectedContent = "contents";
 
-        PostsUpdateRequestDto requestDTO = PostsUpdateRequestDto.builder()
+        PostsUpdateRequestDTO requestDTO = PostsUpdateRequestDTO.builder()
                 .title(expectedTitle)
                 .content(expectedContent)
                 .build();
 
         String url = "http://localhost:" + port + "/api/v1/posts/" + updateId;
 
-        HttpEntity<PostsUpdateRequestDto> requestEntity = new HttpEntity<>(requestDTO);
+        HttpEntity<PostsUpdateRequestDTO> requestEntity = new HttpEntity<>(requestDTO);
 
         // when
-        mvc.perform(put(url) // mvc.perform : 생성된 MockMvc를 통해 api테스트함. 본문영역은 ObjectMapper를 통해 JSON으로 변환함.
+//        ResponseEntity<Long> responseEntity = restTemplate.exchange(url, HttpMethod.PUT, requestEntity, Long.class);
+        mvc.perform(put(url)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(requestDTO)))
                 .andExpect(status().isOk());

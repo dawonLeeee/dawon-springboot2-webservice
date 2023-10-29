@@ -9,6 +9,7 @@ import javax.persistence.*;
 
 @Getter
 @NoArgsConstructor
+@Table(name = "users")
 @Entity
 public class User extends BaseTimeEntity {
 
@@ -25,12 +26,10 @@ public class User extends BaseTimeEntity {
     @Column
     private String picture;
 
-    /*
-    * @Enumerated(EnumType.STRING)
-    * - jpa로 데이터베이스를 저장할 때 Enum값을 어떤 형태로 저장할지 결정함
-    * */
-
-    @Enumerated(EnumType.STRING) // jpa로 데이터베이스로 저장할때 문자열로 선언될 수 있도록 저장함. (기본형 int ->변경)
+    // JPA로 데이터베이스로 지정할 때 Enum 값을 어떤 형태로 저장할지 결정.
+    // 기본적으로는 int로 된 숫자가 저장. 숫자로 저장되면 데이터베이스로 확인할 때 그 값이 무슨 고드를 의미하는지 알 수가 없다.
+    // 그래서 문자열(EnumType.STRING)로 저장될 수 있도록 선언
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
 
